@@ -2,11 +2,20 @@
 Email integrace pro komunikaci s hráči
 """
 import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
+from email.message import EmailMessage
 from typing import Optional
+import ssl
 import config
-    
+from email_validator import EmailNotValidError, validate_email
+
+
+def is_valid_email(email: str) -> bool:
+    try:
+        r = validate_email(email)
+        return True if r else False
+    except Exception:
+        return False
+
 
 def send_message(email: str, text: str, subject: str = "Hra Zrádci") -> bool:
     """
@@ -20,6 +29,10 @@ def send_message(email: str, text: str, subject: str = "Hra Zrádci") -> bool:
     Returns:
         True pokud byla zpráva úspěšně odeslána
     """
+    if not is_valid_email(email):
+        print(f"❌ Chyba při odesílání emailu na '{email}': email není platný")
+        return False
+
     if not config.SMTP_SERVER or not config.SMTP_PORT or not config.EMAIL_FROM:
         print(f"⚠️  Email není nakonfigurováno. Zpráva pro {email}:")
         print(f"📧 Předmět: {subject}")
@@ -28,28 +41,21 @@ def send_message(email: str, text: str, subject: str = "Hra Zrádci") -> bool:
         return False
 
     try:
-        # Vytvoření zprávy
-        msg = MIMEMultipart()
+        msg = EmailMessage()
+        msg['Subject'] = subject
         msg['From'] = config.EMAIL_FROM
         msg['To'] = email
-        msg['Subject'] = subject
+        msg.set_content(text)
 
-        # Přidání těla zprávy
-        msg.attach(MIMEText(text, 'plain', 'utf-8'))
-
-        # Připojení k SMTP serveru a odeslání
-        with smtplib.SMTP(config.SMTP_SERVER, config.SMTP_PORT) as server:
-            if config.SMTP_USE_TLS:
-                server.starttls()
-
-            if config.EMAIL_PASSWORD:
-                server.login(config.EMAIL_FROM, config.EMAIL_PASSWORD)
-
+        context = ssl.create_default_context() # Vytvoří bezpečný SSL kontext
+        with smtplib.SMTP_SSL(config.SMTP_SERVER, config.SMTP_PORT, context=context) as server:
+            server.login(config.EMAIL_FROM, config.EMAIL_PASSWORD)
             server.send_message(msg)
 
+        print("Email úspěšně odeslán!")
         return True
     except Exception as e:
-        print(f"❌ Chyba při odesílání emailu na {email}: {e}")
+        print(f"❌ Chyba při odesílání emailu na '{email}': {e}")
         return False
 
 
@@ -95,7 +101,14 @@ def get_simulated_message(email: str) -> Optional[str]:
 
 
 if __name__ == "__main__":
-    # Testovací odeslání zprávy
-    test_email = "test@example.com"
-    send_message(test_email, "Ahoj! Toto je testovací zpráva z email integrace.")
+    from dotenv import load_dotenv
+    from models import get_all_players
+
+    load_dotenv()
+
+    send_message("fakeemail", "hoho")
+
+    # Testovací odeslání zpráv všem hráčům
+    #emails = [p.get("email") for p in get_all_players()]
+    #send_message_to_multiple(emails, "Ahoj! Toto je testovací zpráva z email integrace.")
 

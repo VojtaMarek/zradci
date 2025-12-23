@@ -77,7 +77,7 @@ def start_game():
 
     models.add_event(1, config.PHASE_INIT, "game_started", "Hra zahájena")
     console.print("[green]✅ Hra úspěšně zahájena![/green]")
-    console.print("[yellow]💡 Použijte 'python main.py next' pro postup do další fáze[/yellow]")
+    console.print("[yellow]💡 Použijte 'zradci next' pro postup do další fáze[/yellow]")
 
     return True
 
@@ -187,9 +187,9 @@ def _process_night_result(round_num: int):
         console.print("[yellow]⚠️  Žádné hlasy! Noc proběhla klidně.[/yellow]")
         message = config.MESSAGES['morning_result_none']
 
-        # Oznámení všem
-        all_players = models.get_all_players()
-        for player in all_players:
+        # Oznámení
+        alive_players = models.get_alive_players()
+        for player in alive_players:
             email_sender.send_message(player['email'], message)
 
         models.update_game_phase(config.PHASE_MORNING_RESULT)
@@ -223,9 +223,9 @@ def _process_night_result(round_num: int):
             message = config.MESSAGES['morning_result'].format(player=victim['name'])
             models.add_event(round_num, config.PHASE_MORNING_RESULT, "night_elimination", f"{victim['name']} eliminován")
 
-            # Oznámení všem
-            all_players = models.get_all_players()
-            for player in all_players:
+            # Oznámení
+            alive_players = models.get_alive_players()
+            for player in alive_players:
                 email_sender.send_message(player['email'], message)
 
             models.update_game_phase(config.PHASE_MORNING_RESULT)
@@ -295,9 +295,9 @@ def _process_night_revote_result(round_num: int):
             message = config.MESSAGES['morning_result'].format(player=victim['name'])
             models.add_event(round_num, config.PHASE_MORNING_RESULT, "night_elimination", f"{victim['name']} eliminován (opakované hlasování)")
 
-    # Oznámení všem
-    all_players = models.get_all_players()
-    for player in all_players:
+    # Oznámení
+    alive_players = models.get_alive_players()
+    for player in alive_players:
         email_sender.send_message(player['email'], message)
 
     models.update_game_phase(config.PHASE_MORNING_RESULT)
@@ -327,7 +327,7 @@ def _start_day_vote(round_num: int):
     alive_players = models.get_alive_players()
 
     # Seznam všech živých hráčů
-    player_list = "\n".join([f"{i+1}. {p['name']}" for i, p in enumerate(alive_players)])
+    player_list = "\n".join([f"{p['id']}. {p['name']}" for i, p in enumerate(alive_players)])
     message = config.MESSAGES['day_vote_prompt'].format(players=player_list)
 
     for player in alive_players:
@@ -350,9 +350,9 @@ def _process_day_result(round_num: int):
         console.print("[yellow]⚠️  Žádné hlasy! Nikdo není vyloučen.[/yellow]")
         message = config.MESSAGES['day_result_tie']
 
-        # Oznámení všem
-        all_players = models.get_all_players()
-        for player in all_players:
+        # Oznámení
+        alive_players = models.get_alive_players()
+        for player in alive_players:
             email_sender.send_message(player['email'], message)
 
         models.update_game_phase(config.PHASE_DAY_RESULT)
@@ -390,9 +390,9 @@ def _process_day_result(round_num: int):
             )
             models.add_event(round_num, config.PHASE_DAY_RESULT, "day_elimination", f"{eliminated['name']} vyloučen")
 
-            # Oznámení všem
-            all_players = models.get_all_players()
-            for player in all_players:
+            # Oznámení
+            alive_players = models.get_alive_players()
+            for player in alive_players:
                 email_sender.send_message(player['email'], message)
 
             models.update_game_phase(config.PHASE_DAY_RESULT)
@@ -486,7 +486,7 @@ def _process_day_revote_result(round_num: int):
             )
             models.add_event(round_num, config.PHASE_DAY_RESULT, "day_elimination", f"{eliminated['name']} vyloučen (opakované hlasování)")
 
-    # Oznámení všem
+    # Oznámení
     all_players = models.get_all_players()
     for player in all_players:
         email_sender.send_message(player['email'], message)
@@ -506,7 +506,7 @@ def check_win_condition() -> bool:
 
     # Zrádci vyhráli
     if len(traitors) >= len(faithful):
-        winner = "traitors"
+        winner = "ZRÁDCI"
         message = config.MESSAGES['traitors_win']
         console.print("[bold red]⚔️ ZRÁDCI VYHRÁLI![/bold red]")
 

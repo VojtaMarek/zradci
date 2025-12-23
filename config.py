@@ -17,6 +17,7 @@ SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
 SMTP_USE_TLS = os.getenv("SMTP_USE_TLS", "true").lower() == "true"
 EMAIL_FROM = os.getenv("EMAIL_FROM", "")
 EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD", "")
+IMAP_SERVER = os.getenv("IMAP_SERVER", "imap.gmail.com")
 
 # OpenAI API konfigurace
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")

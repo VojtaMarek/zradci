@@ -13,6 +13,7 @@ import models
 import game_engine
 import config
 import narrator
+import voting
 
 app = typer.Typer(help="🎮 Aplikace pro moderování hry Zrádci")
 console = Console()
@@ -62,7 +63,7 @@ def add_players():
         if name.lower() == 'q':
             break
 
-        email = Prompt.ask("  Telefon")
+        email = Prompt.ask("  Email")
 
         try:
             player_id = models.add_player(name, email)
@@ -504,7 +505,8 @@ def watch(
         header_style = "red bold" if state['finished'] else "cyan bold"
         header_text = f"{emoji} KOLO {state['round_number']} | FÁZE: {phase_display}"
         if state['finished']:
-            winner_emoji = "⚔️" if state['winner'] == config.ROLE_TRAITOR else "🛡️"
+            print(state['winner'])
+            winner_emoji = "⚔️" if state['winner'] == "traitors" else "🛡️"
             header_text = f"🏁 HRA SKONČILA | VÍTĚZ: {winner_emoji} {state['winner'].upper()}"
 
         layout["header"].update(Panel(header_text, style=header_style))
@@ -662,8 +664,8 @@ def info():
     console.print(f"  Poměr zrádců: {config.TRAITOR_RATIO * 100}%")
     console.print(f"  Databáze: {config.DATABASE_PATH}")
 
-    console.print("\n[bold]📱 WhatsApp:[/bold]")
-    if config.ACCESS_TOKEN and config.PHONE_NUMBER_ID:
+    console.print("\n[bold]📧 Email:[/bold]")
+    if config.EMAIL_FROM and config.EMAIL_PASSWORD:
         console.print("  [green]✅ Nakonfigurováno[/green]")
     else:
         console.print("  [yellow]⚠️  Není nakonfigurováno (zprávy se vypisují do konzole)[/yellow]")
@@ -686,4 +688,3 @@ def info():
 
 if __name__ == "__main__":
     app()
-

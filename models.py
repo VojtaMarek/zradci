@@ -83,6 +83,7 @@ def reset_game():
     with get_db() as conn:
         cur = conn.cursor()
         cur.execute("DELETE FROM players")
+        cur.execute("DELETE FROM sqlite_sequence WHERE name='players'")
         cur.execute("DELETE FROM votes")
         cur.execute("DELETE FROM game_state")
         cur.execute("DELETE FROM events")
@@ -241,6 +242,18 @@ def add_vote(voter_id: int, target_id: int, round_number: int, phase: str):
 
 def get_votes(round_number: int, phase: str) -> List[dict]:
     """Získání hlasů pro dané kolo a fázi"""
+    from email_receiver import count_email_votes
+    from voting import vote as validate_and_vote
+    import time
+
+    # Zpracování emailových hlasů s plnou validací
+    email_votes = count_email_votes()
+    for v in email_votes:
+        if v.from_player_id and v.for_player_id:
+            # Volání vote() z voting.py, které provede všechny validace a přidá hlas
+            validate_and_vote(voter_id=v.from_player_id, target_id=v.for_player_id)
+    time.sleep(0.1)
+
     with get_db() as conn:
         cur = conn.cursor()
         cur.execute(
@@ -290,3 +303,5 @@ def get_events(round_number: Optional[int] = None) -> List[dict]:
             cur.execute("SELECT * FROM events ORDER BY timestamp")
         return [dict(row) for row in cur.fetchall()]
 
+if __name__ == "__main__":
+    r=get_votes(1, ".")
