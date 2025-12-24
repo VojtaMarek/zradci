@@ -164,7 +164,7 @@ def _start_night_vote(round_num: int):
         return
 
     # Vytvoření seznamu pro volbu
-    player_list = "\n".join([f"{i+1}. {p['name']}" for i, p in enumerate(targets)])
+    player_list = "\n".join([f"{p['id']}. {p['name']}" for i, p in enumerate(targets)])
     message = config.MESSAGES['night_vote_prompt'].format(players=player_list)
 
     for traitor in traitors:

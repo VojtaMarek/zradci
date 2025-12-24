@@ -211,10 +211,6 @@ V `config.py` můžete upravit:
 MIN_PLAYERS = 6          # Minimální počet hráčů
 MAX_PLAYERS = 20         # Maximální počet hráčů
 TRAITOR_RATIO = 0.25     # 25% hráčů jsou zrádci
-
-NIGHT_VOTE_TIMEOUT = 120     # 2 minuty na noční hlasování
-DAY_VOTE_TIMEOUT = 300       # 5 minut na denní hlasování
-TRAITOR_CHAT_TIMEOUT = 180   # 3 minuty na diskuzi zrádců
 ```
 
 ## 📊 Databázový model

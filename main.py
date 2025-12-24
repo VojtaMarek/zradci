@@ -450,8 +450,14 @@ def watch(
     import time
     from datetime import datetime
 
+    # Cachování komentáře mezi refresh cykly
+    narrator_commentary = None
+    last_generated_state = None
+
     def generate_dashboard() -> Layout:
         """Vygenerovat aktuální dashboard"""
+        nonlocal narrator_commentary, last_generated_state  # Přístup k vnějším proměnným
+
         layout = Layout()
         layout.split_column(
             Layout(name="header", size=3),
@@ -517,8 +523,12 @@ def watch(
             Layout(name="content")
         )
 
-        # Sekce s LLM komentářem moderátora
-        narrator_commentary = narrator.generate_narrator_commentary()
+        # Sekce s LLM komentářem moderátora, generuje pouze při změně fáze
+        if not narrator_commentary or last_generated_state != state['phase']:
+            print("Generating new narrator commentary...")
+            last_generated_state = state['phase']
+            narrator_commentary = narrator.generate_narrator_commentary()
+        
         if narrator_commentary:
             narrator_panel = Panel(
                 narrator_commentary,
@@ -591,14 +601,24 @@ def watch(
 """
 
         # Aktuální hlasy
-        if state['phase'] in [config.PHASE_NIGHT_VOTE, config.PHASE_NIGHT_REVOTE, config.PHASE_DAY_VOTE, config.PHASE_DAY_REVOTE]:
-            votes_text = get_current_votes_text(state)
+        if state['phase'] in [config.PHASE_NIGHT_VOTE, config.PHASE_NIGHT_REVOTE]:
+            total_voters = len(models.get_players_by_role(config.ROLE_TRAITOR, alive_only=True))
+            voter_turnout = get_current_voter_turnout_count(state, total_voters)
+            stats_text += f"🗳️  Odhlasováno tajně: [cyan]{voter_turnout}[/cyan]\n\n"
+
+        if state['phase'] in [config.PHASE_DAY_VOTE, config.PHASE_DAY_REVOTE]:
+            total_alive = len(models.get_alive_players())
+            voter_turnout = get_current_voter_turnout_count(state, total_alive)
+            stats_text += f"🗳️  Odhlasováno veřejně: [cyan]{voter_turnout}[/cyan]\n\n"
+
+            votes_text = get_current_votes_text(state) 
+            
             vote_title = "🗳️  Aktuální hlasy"
             if state['phase'] == config.PHASE_DAY_REVOTE:
                 vote_title = "🔄 Opakované denní hlasování"
-            elif state['phase'] == config.PHASE_NIGHT_REVOTE:
-                vote_title = "🔄 Opakované noční hlasování"
+
             stats_text += f"[bold]{vote_title}[/bold]\n{votes_text}\n"
+
 
         # Poslední událost
         recent_events = models.get_events()
@@ -616,6 +636,19 @@ def watch(
         ))
 
         return layout
+
+
+    def get_current_voter_turnout_count(state, max_voters) -> str:
+        """získej text s počtem hlasujících a procentem"""
+        votes_list = models.get_votes(state['round_number'], state['phase'])
+        
+        if not votes_list:
+            return "0 (0%)"
+        
+        vote_count = len(set(vote['voter_id'] for vote in votes_list))
+        percentage = (vote_count / max_voters) * 100 if max_voters > 0 else 0
+        return f"{vote_count} ({percentage:.1f}%)"
+
 
     def get_current_votes_text(state) -> str:
         """Získat text aktuálních hlasů"""

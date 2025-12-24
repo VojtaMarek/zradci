@@ -6,19 +6,13 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# WhatsApp Cloud API konfigurace (zastaralé)
-# ACCESS_TOKEN = os.getenv("WHATSAPP_TOKEN", "")
-# PHONE_NUMBER_ID = os.getenv("WHATSAPP_PHONE_ID", "")
-# WHATSAPP_VERIFY_TOKEN = os.getenv("WHATSAPP_VERIFY_TOKEN", "zradci_verify_2024")
-
 # Email konfigurace
-SMTP_SERVER = os.getenv("SMTP_SERVER", "smtp.gmail.com")
-SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
+SMTP_SERVER = os.getenv("SMTP_SERVER", "smtp.seznam.cz")
+SMTP_PORT = int(os.getenv("SMTP_PORT", "465"))
 SMTP_USE_TLS = os.getenv("SMTP_USE_TLS", "true").lower() == "true"
 EMAIL_FROM = os.getenv("EMAIL_FROM", "")
 EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD", "")
-IMAP_SERVER = os.getenv("IMAP_SERVER", "imap.gmail.com")
-
+IMAP_SERVER = os.getenv("IMAP_SERVER", "imap.seznam.cz")
 # OpenAI API konfigurace
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
@@ -31,21 +25,21 @@ MIN_PLAYERS = 6
 MAX_PLAYERS = 20
 TRAITOR_RATIO = 0.25  # 25% hráčů jsou zrádci (minimálně 2)
 
-# Časové limity (v sekundách)
-NIGHT_VOTE_TIMEOUT = 120  # 2 minuty pro noční volbu
-DAY_VOTE_TIMEOUT = 300    # 5 minut pro denní hlasování
-TRAITOR_CHAT_TIMEOUT = 180  # 3 minuty pro diskuzi zrádců
+# # Časové limity (v sekundách)
+# NIGHT_VOTE_TIMEOUT = 120  # 2 minuty pro noční volbu
+# DAY_VOTE_TIMEOUT = 300    # 5 minut pro denní hlasování
+# TRAITOR_CHAT_TIMEOUT = 180  # 3 minuty pro diskuzi zrádců
 
 # Herní fáze
 PHASE_INIT = "inicializace"
-PHASE_NIGHT_TRAITOR_CHAT = "nocni_diskuze_zradcu"
-PHASE_NIGHT_VOTE = "nocni_hlasovani"
+PHASE_NIGHT_TRAITOR_CHAT = "nocni_diskuze_zradcu" # 22:00
+PHASE_NIGHT_VOTE = "nocni_hlasovani"  # 23:00
 PHASE_NIGHT_REVOTE = "nocni_opakovane_hlasovani"  # Opakované noční hlasování při remíze
-PHASE_MORNING_RESULT = "rano_vysledek"
-PHASE_DAY_DISCUSSION = "denni_diskuze"
-PHASE_DAY_VOTE = "denni_hlasovani"
+PHASE_MORNING_RESULT = "rano_vysledek"  # 6:00
+PHASE_DAY_DISCUSSION = "denni_diskuze"  # 8:00
+PHASE_DAY_VOTE = "denni_hlasovani"  # 18:00
 PHASE_DAY_REVOTE = "denni_opakovane_hlasovani"  # Opakované denní hlasování při remíze
-PHASE_DAY_RESULT = "den_vysledek"
+PHASE_DAY_RESULT = "den_vysledek"  # 20:00
 PHASE_GAME_OVER = "konec_hry"
 
 # Role

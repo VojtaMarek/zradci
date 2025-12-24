@@ -1,6 +1,3 @@
-"""
-Generátor LLM komentářů moderátora pro hru Zrádci
-"""
 import config
 import models
 
@@ -146,3 +143,8 @@ Pamatuj: NIKDY neprozraď role! Můžeš spekulovat, ale neurčitě.
 
     return context
 
+
+if __name__ == "__main__":
+    commentary = generate_narrator_commentary()
+    print("=== Generovaný komentář moderátora ===")
+    print(commentary)

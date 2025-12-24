@@ -59,7 +59,7 @@ def send_message(email: str, text: str, subject: str = "Hra Zrádci") -> bool:
         return False
 
 
-def send_message_to_multiple(emails: list[str], text: str, subject: str = "Hra Zrádci"):
+def send_message_to_multiple(emails: list[str], text: str, subject: str = "Hra Zrádci") -> bool:
     """
     Odeslání zprávy více příjemcům
 
@@ -68,8 +68,10 @@ def send_message_to_multiple(emails: list[str], text: str, subject: str = "Hra Z
         text: Text zprávy
         subject: Předmět emailu
     """
+    sended = []
     for email in emails:
-        send_message(email, text, subject)
+        sended.append(send_message(email, text, subject))
+    return all(sended)
 
 
 def validate_email(email: str) -> bool:
@@ -106,9 +108,9 @@ if __name__ == "__main__":
 
     load_dotenv()
 
-    send_message("fakeemail", "hoho")
-
     # Testovací odeslání zpráv všem hráčům
-    #emails = [p.get("email") for p in get_all_players()]
-    #send_message_to_multiple(emails, "Ahoj! Toto je testovací zpráva z email integrace.")
-
+    emails = [p.get("email") for p in get_all_players()]
+    if send_message_to_multiple(emails, "Ahoj! Toto je testovací zpráva z email integrace."):
+        print("Testovací zprávy odeslány všem hráčům.")
+    else:
+        print("Některé testovací zprávy se nepodařilo odeslat.")
