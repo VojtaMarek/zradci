@@ -71,6 +71,7 @@ def init_db():
                 phase TEXT,
                 event_type TEXT,
                 description TEXT,
+                moderator_note TEXT,
                 timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
             )
         """)
@@ -166,6 +167,16 @@ def eliminate_player(player_id: int, round_number: int):
         )
         conn.commit()
 
+
+def get_latest_moderator_commentary() -> Optional[str]:
+    """Získání posledního komentáře moderátora z událostí"""
+    with get_db() as conn:
+        cur = conn.cursor()
+        cur.execute(
+            "SELECT moderator_note FROM events WHERE moderator_note IS NOT NULL AND moderator_note != '' ORDER BY timestamp DESC LIMIT 1"
+        )
+        row = cur.fetchone()
+        return row['moderator_note'] if row else None
 
 # === HERNÍ STAV ===
 
@@ -282,13 +293,13 @@ def count_votes(round_number: int, phase: str) -> List[Tuple[int, int]]:
 
 # === UDÁLOSTI ===
 
-def add_event(round_number: int, phase: str, event_type: str, description: str):
+def add_event(round_number: int, phase: str, event_type: str, description: str, moderator_note: str = ""):
     """Přidání události do logu"""
     with get_db() as conn:
         cur = conn.cursor()
         cur.execute(
-            "INSERT INTO events (round_number, phase, event_type, description) VALUES (?, ?, ?, ?)",
-            (round_number, phase, event_type, description)
+            "INSERT INTO events (round_number, phase, event_type, description, moderator_note) VALUES (?, ?, ?, ?, ?)",
+            (round_number, phase, event_type, description, moderator_note)
         )
         conn.commit()
 

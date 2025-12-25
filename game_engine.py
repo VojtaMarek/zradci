@@ -8,6 +8,7 @@ from rich.table import Table
 import config
 import models
 import email_sender
+import narrator
 
 
 console = Console()
@@ -54,7 +55,7 @@ def assign_roles():
 
         email_sender.send_message(player_data['email'], message)
 
-    models.add_event(1, config.PHASE_INIT, "roles_assigned", f"Role přiřazeny: {num_traitors} zrádců")
+    add_event(1, config.PHASE_INIT, "roles_assigned", f"Role přiřazeny: {num_traitors} zrádců", moderator=False)
     console.print("[green]✅ Role přiřazeny a odeslány hráčům[/green]")
     return True
 
@@ -75,7 +76,7 @@ def start_game():
     for player in players:
         email_sender.send_message(player['email'], config.MESSAGES['game_start'])
 
-    models.add_event(1, config.PHASE_INIT, "game_started", "Hra zahájena")
+    add_event(1, config.PHASE_INIT, "game_started", "Hra zahájena", moderator=False)
     console.print("[green]✅ Hra úspěšně zahájena![/green]")
     console.print("[yellow]💡 Použijte 'zradci next' pro postup do další fáze[/yellow]")
 
@@ -133,6 +134,12 @@ def next_phase():
         _start_night_traitor_chat(round_num + 1)
 
 
+def add_event(round_number: int, phase: str, event_type: str, description: str, moderator: bool = True):
+    """Aktualizace události, včetně moderačního komentáře"""
+    narrator_commentary = narrator.generate_narrator_commentary() if moderator else ""
+    models.add_event(round_number, phase, event_type, description, narrator_commentary)
+
+
 def _start_night_traitor_chat(round_num: int):
     """Zahájení noční diskuze zrádců"""
     console.print(f"[magenta]🌙 KOLO {round_num} - Noční diskuze zrádců[/magenta]")
@@ -143,7 +150,7 @@ def _start_night_traitor_chat(round_num: int):
         email_sender.send_message(traitor['email'], config.MESSAGES['night_begins'])
 
     models.update_game_phase(config.PHASE_NIGHT_TRAITOR_CHAT)
-    models.add_event(round_num, config.PHASE_NIGHT_TRAITOR_CHAT, "night_chat", "Noční diskuze zahájena")
+    add_event(round_num, config.PHASE_NIGHT_TRAITOR_CHAT, "night_chat", "Noční diskuze zahájena")
 
     console.print("[yellow]💡 Zrádci se radí... Použijte 'next' pro přechod k hlasování[/yellow]")
 
@@ -171,7 +178,7 @@ def _start_night_vote(round_num: int):
         email_sender.send_message(traitor['email'], message)
 
     models.update_game_phase(config.PHASE_NIGHT_VOTE)
-    models.add_event(round_num, config.PHASE_NIGHT_VOTE, "night_vote", "Noční hlasování zahájeno")
+    add_event(round_num, config.PHASE_NIGHT_VOTE, "night_vote", "Noční hlasování zahájeno")
 
     console.print(f"[yellow]🗳️  Čekám na hlasy {len(traitors)} zrádců...[/yellow]")
     console.print("[yellow]💡 Použijte 'vote' pro zadání hlasů nebo 'next' pro vyhodnocení[/yellow]")
@@ -221,7 +228,7 @@ def _process_night_result(round_num: int):
 
             models.eliminate_player(victim_id, round_num)
             message = config.MESSAGES['morning_result'].format(player=victim['name'])
-            models.add_event(round_num, config.PHASE_MORNING_RESULT, "night_elimination", f"{victim['name']} eliminován")
+            add_event(round_num, config.PHASE_MORNING_RESULT, "night_elimination", f"{victim['name']} eliminován")
 
             # Oznámení
             alive_players = models.get_alive_players()
@@ -259,7 +266,7 @@ def _start_night_revote(round_num: int, tied_candidate_ids: List[int], tied_name
         console.print(f"   ⚔️  {traitor['name']} musí hlasovat znovu")
 
     models.update_game_phase(config.PHASE_NIGHT_REVOTE)
-    models.add_event(round_num, config.PHASE_NIGHT_REVOTE, "night_revote", f"Opakované noční hlasování: {tied_players_names}")
+    add_event(round_num, config.PHASE_NIGHT_REVOTE, "night_revote", f"Opakované noční hlasování: {tied_players_names}")
 
     console.print(f"[yellow]🗳️  Čekám na hlasy {len(traitors)} zrádců...[/yellow]")
     console.print("[yellow]💡 Použijte 'vote' pro zadání hlasů nebo 'next' pro vyhodnocení[/yellow]")
@@ -293,7 +300,7 @@ def _process_night_revote_result(round_num: int):
 
             models.eliminate_player(victim_id, round_num)
             message = config.MESSAGES['morning_result'].format(player=victim['name'])
-            models.add_event(round_num, config.PHASE_MORNING_RESULT, "night_elimination", f"{victim['name']} eliminován (opakované hlasování)")
+            add_event(round_num, config.PHASE_MORNING_RESULT, "night_elimination", f"{victim['name']} eliminován (opakované hlasování)")
 
     # Oznámení
     alive_players = models.get_alive_players()
@@ -315,7 +322,7 @@ def _start_day_discussion(round_num: int):
         email_sender.send_message(player['email'], config.MESSAGES['day_discussion'])
 
     models.update_game_phase(config.PHASE_DAY_DISCUSSION)
-    models.add_event(round_num, config.PHASE_DAY_DISCUSSION, "day_discussion", "Denní diskuze zahájena")
+    add_event(round_num, config.PHASE_DAY_DISCUSSION, "day_discussion", "Denní diskuze zahájena")
 
     console.print("[yellow]💡 Hráči diskutují... Použijte 'next' pro zahájení hlasování[/yellow]")
 
@@ -334,7 +341,7 @@ def _start_day_vote(round_num: int):
         email_sender.send_message(player['email'], message)
 
     models.update_game_phase(config.PHASE_DAY_VOTE)
-    models.add_event(round_num, config.PHASE_DAY_VOTE, "day_vote", "Denní hlasování zahájeno")
+    add_event(round_num, config.PHASE_DAY_VOTE, "day_vote", "Denní hlasování zahájeno")
 
     console.print(f"[yellow]🗳️  Čekám na hlasy {len(alive_players)} hráčů...[/yellow]")
     console.print("[yellow]💡 Použijte 'vote' pro zadání hlasů nebo 'next' pro vyhodnocení[/yellow]")
@@ -388,7 +395,7 @@ def _process_day_result(round_num: int):
                 player=eliminated['name'],
                 role="⚔️ ZRÁDCE" if eliminated['role'] == config.ROLE_TRAITOR else "🛡️ VĚRNÝ"
             )
-            models.add_event(round_num, config.PHASE_DAY_RESULT, "day_elimination", f"{eliminated['name']} vyloučen")
+            add_event(round_num, config.PHASE_DAY_RESULT, "day_elimination", f"{eliminated['name']} vyloučen")
 
             # Oznámení
             alive_players = models.get_alive_players()
@@ -449,7 +456,7 @@ def _start_day_revote(round_num: int, tied_player_ids: List[int], tied_names: Li
         console.print(f"   🚫 {player['name']} nemůže hlasovat (je v remíze)")
 
     models.update_game_phase(config.PHASE_DAY_REVOTE)
-    models.add_event(round_num, config.PHASE_DAY_REVOTE, "day_revote", f"Opakované hlasování: {tied_players_names}")
+    add_event(round_num, config.PHASE_DAY_REVOTE, "day_revote", f"Opakované hlasování: {tied_players_names}")
 
     console.print(f"[yellow]🗳️  Čekám na hlasy {len(eligible_voters)} oprávněných voličů...[/yellow]")
     console.print("[yellow]💡 Použijte 'vote' pro zadání hlasů nebo 'next' pro vyhodnocení[/yellow]")
@@ -484,7 +491,7 @@ def _process_day_revote_result(round_num: int):
                 player=eliminated['name'],
                 role="⚔️ ZRÁDCE" if eliminated['role'] == config.ROLE_TRAITOR else "🛡️ VĚRNÝ"
             )
-            models.add_event(round_num, config.PHASE_DAY_RESULT, "day_elimination", f"{eliminated['name']} vyloučen (opakované hlasování)")
+            add_event(round_num, config.PHASE_DAY_RESULT, "day_elimination", f"{eliminated['name']} vyloučen (opakované hlasování)")
 
     # Oznámení
     all_players = models.get_all_players()
@@ -524,7 +531,7 @@ def check_win_condition() -> bool:
         for player in all_players:
             email_sender.send_message(player['email'], message)
 
-        models.add_event(
+        add_event(
             models.get_game_state()['round_number'],
             config.PHASE_GAME_OVER,
             "game_over",
@@ -599,4 +606,4 @@ def show_final_results():
 
     console.print(f"\n[bold]🏆 Vítěz: {state['winner'].upper()}[/bold]")
     console.print(f"[bold]🔄 Celkem kol: {state['round_number']}[/bold]\n")
-
+    

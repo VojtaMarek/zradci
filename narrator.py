@@ -73,7 +73,7 @@ Příklady ŠPATNÝCH komentářů (NIKDY NEDĚLEJ):
         return ""
 
 
-def _prepare_context(state: dict, players: list, events: list) -> str:
+def _prepare_context(state: dict, players: list, events: list, events_limit: int = 5) -> str:
     """Připraví kontext pro LLM (BEZ informací o rolích!)"""
 
     # Fáze
@@ -98,16 +98,12 @@ def _prepare_context(state: dict, players: list, events: list) -> str:
     dead_players = [p for p in players if not p['alive']]
 
     alive_names = ", ".join([p['name'] for p in alive_players])
-    dead_names = ", ".join([p['name'] for p in dead_players]) if dead_players else "zatím nikdo"
+    dead_names = ", ".join([f"{p['name']} ({p['role']})" for p in dead_players]) if dead_players else "zatím nikdo"
 
-    # Poslední události (filtrovat citlivé informace)
-    recent_events = []
-    for event in events[-5:]:  # Posledních 5 událostí
-        # Přeskočit události které prozrazují role
-        if event['event_type'] not in ['roles_assigned', 'traitor_vote']:
-            recent_events.append(event['description'])
-
-    events_text = "\n".join(recent_events[-3:]) if recent_events else "Žádné významné události"
+    # Nedávné události (omezeno na posledních N)
+    events_texts: list[str] = [f"{event['phase']} - {event['description']}, moderátor: {event['moderator_note']}" 
+                               for event in events[-events_limit:]]
+    events_text = "\n".join(events_texts) if events else "Žádné významné události"
 
     # Aktuální hlasy (pokud je hlasovací fáze)
     votes_text = ""
@@ -121,7 +117,8 @@ def _prepare_context(state: dict, players: list, events: list) -> str:
                 target_name = target['name']
                 vote_counts[target_name] = vote_counts.get(target_name, 0) + 1
 
-            votes_summary = [f"{name} ({count} hlasů)" for name, count in sorted(vote_counts.items(), key=lambda x: x[1], reverse=True)]
+            votes_summary = [f"{name} ({count} hlasů)" for name, count 
+                             in sorted(vote_counts.items(), key=lambda x: x[1], reverse=True)]
             votes_text = f"\nAktuální hlasy: {', '.join(votes_summary)}"
 
     context = f"""

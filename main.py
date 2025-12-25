@@ -524,10 +524,7 @@ def watch(
         )
 
         # Sekce s LLM komentářem moderátora, generuje pouze při změně fáze
-        if not narrator_commentary or last_generated_state != state['phase']:
-            print("Generating new narrator commentary...")
-            last_generated_state = state['phase']
-            narrator_commentary = narrator.generate_narrator_commentary()
+        narrator_commentary = models.get_latest_moderator_commentary()
         
         if narrator_commentary:
             narrator_panel = Panel(
@@ -609,22 +606,28 @@ def watch(
         if state['phase'] in [config.PHASE_DAY_VOTE, config.PHASE_DAY_REVOTE]:
             total_alive = len(models.get_alive_players())
             voter_turnout = get_current_voter_turnout_count(state, total_alive)
-            stats_text += f"🗳️  Odhlasováno veřejně: [cyan]{voter_turnout}[/cyan]\n\n"
-
             votes_text = get_current_votes_text(state) 
             
-            vote_title = "🗳️  Aktuální hlasy"
+            vote_title = "🗳️  Aktuální hlasy:"
             if state['phase'] == config.PHASE_DAY_REVOTE:
-                vote_title = "🔄 Opakované denní hlasování"
-
+                vote_title = "🔄 Opakované denní hlasování:"
+            vote_title += f" [cyan]{voter_turnout}[/cyan]" if voter_turnout != "0 (0%)" else ""
             stats_text += f"[bold]{vote_title}[/bold]\n{votes_text}\n"
 
+            votes_list = models.get_votes(state['round_number'], state['phase'])
+            stats_text += "\n"
+            for v in votes_list:
+                voter = models.get_player(v['voter_id'])
+                target = models.get_player(v['target_id'])
+                stats_text += f"  {voter['name']} → {target['name']}\n"
 
-        # Poslední událost
-        recent_events = models.get_events()
-        if recent_events:
-            last_event = recent_events[0]
-            stats_text += f"\n[bold]📜 Poslední událost[/bold]\n[dim]{last_event['description']}[/dim]"
+
+        else:
+            # Poslední událost
+            recent_events = models.get_events()
+            if recent_events:
+                last_events = recent_events[-10:]
+                stats_text += f"\n[bold]📜 Poslední události[/bold]\n[dim]{"\n".join(e['description'] for e in last_events)}[/dim]"
 
         layout["stats"].update(Panel(stats_text, title="📊 Info", border_style="green"))
 
