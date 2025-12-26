@@ -1,13 +1,16 @@
 # Zrádci - Aplikace pro moderování hry
 
-> 🎮 Backend aplikace pro moderování hry inspirované TV show "The Traitors". Komunikace s hráči přes WhatsApp, plná autonomie bez lidského moderátora.
+
+
+
+> 🎮 Backend aplikace pro moderování hry inspirované TV show "The Traitors". Komunikace s hráči přes **email**, plná autonomie bez lidského moderátora.
 
 ## 📋 Přehled
 
 Aplikace funguje jako **automatický moderátor** hry Zrádci:
 - ✅ Náhodně přiřadí role (zrádci vs. věrní)
 - ✅ Řídí noční a denní fáze
-- ✅ Komunikuje s hráči přes WhatsApp
+- ✅ Komunikuje s hráči přes **email**
 - ✅ Zpracovává hlasování
 - ✅ Ukládá průběh hry do SQLite
 - ✅ Vyhodnocuje výsledky
@@ -20,11 +23,11 @@ zradci/
 ├── main.py           # CLI rozhraní (Typer)
 ├── game_engine.py    # Herní logika a fáze
 ├── models.py         # SQLite databáze
-├── whatsapp.py       # WhatsApp Cloud API
+├── email_sender.py   # Email komunikace
 ├── narrator.py       # LLM komentáře moderátora
 ├── config.py         # Konfigurace
 ├── storage.db        # Databáze (vytvoří se automaticky)
-└── .env              # Env proměnné (WhatsApp tokeny)
+└── .env              # Env proměnné (email, LLM klíč a model)
 ```
 
 ## 🚀 Instalace
@@ -47,7 +50,7 @@ uv sync
 uv pip install -e .
 ```
 
-### 3. Konfigurace WhatsApp (volitelné)
+### 3. Konfigurace
 
 Zkopírujte `.env.example` do `.env` a vyplňte:
 
@@ -57,28 +60,30 @@ cp .env.example .env
 
 V `.env`:
 ```
-WHATSAPP_TOKEN=váš_token_z_meta_for_developers
-WHATSAPP_PHONE_ID=váš_phone_number_id
-WHATSAPP_VERIFY_TOKEN=zradci_verify_2024
+# Email konfigurace (povinné pro odesílání zpráv)
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_USER=vas-email@gmail.com
+EMAIL_PASSWORD=your-app-password
+EMAIL_FROM=vas-email@gmail.com
 
 # LLM komentáře moderátora (volitelné)
 OPENAI_API_KEY=sk-váš_openai_api_klíč
 OPENAI_MODEL=gpt-4o-mini
 ```
 
-> **Poznámka**: Pro testování není WhatsApp nutný - aplikace funguje i bez něj a zprávy se vypisují do konzole.
+> **Poznámka**: Pro testování není email nutný - aplikace funguje i bez něj a zprávy se vypisují do konzole.
 > LLM komentáře jsou také volitelné - bez OpenAI klíče dashboard funguje normálně, pouze bez komentářů moderátora.
 
 ## 🎮 Použití
 
-> **Tip**: Můžete používat buď `zradci` nebo přímo `zradci` (po instalaci s `uv pip install -e .`)
+> **Tip**: Můžete používat buď `python main.py` nebo přímo `zradci` (po instalaci s `uv pip install -e .`)
 
 ### Základní workflow
 
 ```bash
 # 1. Inicializace databáze
 zradci setup
-# nebo: zradci setup
 
 # 2. Přidání hráčů (interaktivně)
 zradci add-players
@@ -219,7 +224,7 @@ TRAITOR_RATIO = 0.25     # 25% hráčů jsou zrádci
 
 #### `players`
 ```sql
-id, name, phone, role, alive, eliminated_round
+id, name, email, role, alive, eliminated_round
 ```
 
 #### `votes`
@@ -237,24 +242,22 @@ id, round_number, phase, started, finished, winner, created_at, updated_at
 id, round_number, phase, event_type, description, timestamp
 ```
 
-## 📱 WhatsApp integrace
+## 📧 Email komunikace
 
-### Nastavení WhatsApp Cloud API
+Aplikace odesílá emailové zprávy hráčům v klíčových momentech hry:
 
-1. Jděte na [Meta for Developers](https://developers.facebook.com/)
-2. Vytvořte aplikaci a aktivujte WhatsApp Cloud API
-3. Získejte:
-   - **Access Token** (dlouhodobý token)
-   - **Phone Number ID** (ID vašeho testovacího čísla)
-4. Nastavte webhook pro příjem zpráv (volitelné)
+- 🎭 **Přiřazení role** - na začátku hry
+- 🌙 **Noční události** - zrádcům po eliminaci
+- ☀️ **Denní události** - všem hráčům (výsledky hlasování)
+- 🏆 **Konec hry** - výsledky a odhalení všech rolí
 
-### Bez WhatsApp (testování)
+### Bez emailu (testování)
 
-Aplikace funguje i bez WhatsApp! Zprávy se jen vypíší do konzole:
+Aplikace funguje i bez email konfigurace! Zprávy se jen vypíší do konzole:
 
 ```
-⚠️  WhatsApp není nakonfigurováno. Zpráva pro 420777123456:
-📱 🛡️ Jste VĚRNÝ hráč! Odhalte zrádce dřív, než vás eliminují.
+⚠️  Email není nakonfigurován. Zpráva pro jan.novak@email.cz:
+📧 🛡️ Jste VĚRNÝ hráč! Odhalte zrádce dřív, než vás eliminují.
 --------------------------------------------------
 ```
 
@@ -265,14 +268,14 @@ Aplikace funguje i bez WhatsApp! Zprávy se jen vypíší do konzole:
 zradci setup
 
 # 2. Přidání 8 hráčů
-zradci add-player "Alice" "420111111111"
-zradci add-player "Bob" "420222222222"
-zradci add-player "Charlie" "420333333333"
-zradci add-player "Diana" "420444444444"
-zradci add-player "Eva" "420555555555"
-zradci add-player "Frank" "420666666666"
-zradci add-player "Grace" "420777777777"
-zradci add-player "Henry" "420888888888"
+zradci add-player "Alice" "alice@example.com"
+zradci add-player "Bob" "bob@example.com"
+zradci add-player "Charlie" "charlie@example.com"
+zradci add-player "Diana" "diana@example.com"
+zradci add-player "Eva" "eva@example.com"
+zradci add-player "Frank" "frank@example.com"
+zradci add-player "Grace" "grace@example.com"
+zradci add-player "Henry" "henry@example.com"
 
 # 3. Start
 zradci start
@@ -300,10 +303,10 @@ zradci events
 
 - ✅ **LLM moderátor** - dramatické komentáře v reálném čase ([LLM_NARRATOR.md](docs/LLM_NARRATOR.md))
 - 📊 **Web dashboard** - realtime sledování stavu hry
+- 💬 **Chat integrace** - WhatsApp, Telegram, Discord pro diskuze
 - 🎥 **Video hovory** - integrace s videokonferencemi pro diskuze
 - 🎲 **Speciální role** - guardian, detective, jester
 - 📈 **Statistiky** - tracking výkonu hráčů napříč hrami
-- 🌐 **Multi-platform** - kromě WhatsApp také Telegram, Discord
 - 🎨 **Customizace** - JSON konfigurace rolí a pravidel
 - 💾 **Export** - PDF reporty z her
 
@@ -313,7 +316,7 @@ zradci events
 - **Typer** - CLI framework
 - **Rich** - krásný terminálový output
 - **SQLite** - databáze
-- **Requests** - HTTP komunikace
+- **SMTP** - email komunikace
 - **OpenAI** - LLM komentáře moderátora
 - **APScheduler** - plánování úloh (připraveno)
 - **python-dotenv** - env proměnné
@@ -328,5 +331,5 @@ Návrhy a pull requesty vítány!
 
 ---
 
-Vytvořeno s ❤️ pro hru Zrádci
+Vytvořeno pro jedno silvestrovské setkání na chatě.
 
