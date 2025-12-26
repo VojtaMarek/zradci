@@ -1,9 +1,8 @@
 # Zrádci - Aplikace pro moderování hry
 
-
-
-
 > 🎮 Backend aplikace pro moderování hry inspirované TV show "The Traitors". Komunikace s hráči přes **email**, plná autonomie bez lidského moderátora.
+
+![ilustrativní obrázek](imgs/Snímek%20obrazovky%202025-12-26%20v 19.34.11.png)
 
 ## 📋 Přehled
 
