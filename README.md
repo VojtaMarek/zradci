@@ -2,7 +2,7 @@
 
 > 🎮 Backend aplikace pro moderování hry inspirované TV show "The Traitors". Komunikace s hráči přes **email**, plná autonomie bez lidského moderátora.
 
-![ilustrativní obrázek](imgs/Snímek%20obrazovky%202025-12-26%20v 19.34.11.png)
+![ilustrativní obrázek, zradci watch](imgs/Snímek%20obrazovky%202025-12-26%20v 19.34.11.png)
 
 ## 📋 Přehled
 
@@ -65,6 +65,7 @@ EMAIL_PORT=587
 EMAIL_USER=vas-email@gmail.com
 EMAIL_PASSWORD=your-app-password
 EMAIL_FROM=vas-email@gmail.com
+UPDATE_INTERVAL=5.0
 
 # LLM komentáře moderátora (volitelné)
 OPENAI_API_KEY=sk-váš_openai_api_klíč
@@ -76,7 +77,7 @@ OPENAI_MODEL=gpt-4o-mini
 
 ## 🎮 Použití
 
-> **Tip**: Můžete používat buď `python main.py` nebo přímo `zradci` (po instalaci s `uv pip install -e .`)
+> **Tip**: Můžete používat buď `uv run main.py` nebo přímo `zradci` (po instalaci s `uv pip install -e .`)
 
 ### Základní workflow
 
@@ -146,14 +147,14 @@ zradci reset
 Příkaz `watch` poskytuje real-time dashboard s automatickou aktualizací stavu hry:
 
 ```bash
-# Základní použití (aktualizace každé 2 sekundy)
+# Základní použití (aktualizace každých 5 sekund)
 zradci watch
 
 # Rychlejší aktualizace
-zradci watch --interval 1
+zradci watch --interval 2
 
 # Pomalejší aktualizace
-zradci watch -i 5
+zradci watch -i 10
 ```
 
 **Dashboard zobrazuje:**
@@ -165,9 +166,6 @@ zradci watch -i 5
 - 🗳️ Live hlasování (během fází hlasování)
 - 📜 Poslední události
 - 🕐 Čas poslední aktualizace
-
-> **Nová funkce:** Dashboard obsahuje LLM generované komentáře moderátora! 
-> Více informací: [LLM_NARRATOR.md](docs/LLM_NARRATOR.md)
 
 **Ukončení:** Stiskněte `Ctrl+C`
 
@@ -200,8 +198,6 @@ Pokud denní hlasování skončí nerozhodně (více hráčů se stejným nejvy�
 - Hlasovat mohou **pouze hráči, kteří NEJSOU v remíze**
 - Hlasuje se **pouze pro hráče v remíze**
 - Pokud je stále remíza → nikdo není vyloučen a hra pokračuje
-
-> 📖 **Podrobnosti:** Viz [REVOTE_FEATURE.md](docs/REVOTE_FEATURE.md)
 
 ### Podmínky vítězství
 - ⚔️ **Zrádci vyhrávají**, pokud je jich stejně nebo více než věrných
@@ -238,7 +234,7 @@ id, round_number, phase, started, finished, winner, created_at, updated_at
 
 #### `events`
 ```sql
-id, round_number, phase, event_type, description, timestamp
+id, round_number, phase, event_type, description, moderator_note, timestamp
 ```
 
 ## 📧 Email komunikace
@@ -300,7 +296,6 @@ zradci events
 
 ## 🔮 Možná rozšíření
 
-- ✅ **LLM moderátor** - dramatické komentáře v reálném čase ([LLM_NARRATOR.md](docs/LLM_NARRATOR.md))
 - 📊 **Web dashboard** - realtime sledování stavu hry
 - 💬 **Chat integrace** - WhatsApp, Telegram, Discord pro diskuze
 - 🎥 **Video hovory** - integrace s videokonferencemi pro diskuze
