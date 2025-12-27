@@ -3,7 +3,7 @@ import config
 
 
 def vote(voter_id: int, target_id: int):
-    """🗳️  Manuální zadání hlasu"""
+    """🗳️  Zadání hlasu"""
     state = models.get_game_state()
 
     if not state or not state['started']:

@@ -441,7 +441,7 @@ def events(round_num: Optional[int] = None):
 
 @app.command()
 def watch(
-    interval: float = typer.Option(2.0, "--interval", "-i", help="Interval aktualizace v sekundách"),
+    interval: float = typer.Option(config.UPDATE_INTERVAL, "--interval", "-i", help="Interval aktualizace v sekundách"),
 ):
     """👀 Sledovat stav hry v reálném čase (live dashboard)"""
     from rich.live import Live
@@ -529,7 +529,7 @@ def watch(
         if narrator_commentary:
             narrator_panel = Panel(
                 narrator_commentary,
-                title="🎙️ Moderátor",
+                title="🎙️ AI Moderátor",
                 border_style="yellow",
                 style="italic"
             )

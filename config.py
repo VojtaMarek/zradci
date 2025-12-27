@@ -13,6 +13,8 @@ SMTP_USE_TLS = os.getenv("SMTP_USE_TLS", "true").lower() == "true"
 EMAIL_FROM = os.getenv("EMAIL_FROM", "")
 EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD", "")
 IMAP_SERVER = os.getenv("IMAP_SERVER", "imap.seznam.cz")
+UPDATE_INTERVAL = float(os.getenv("UPDATE_INTERVAL", 2.0))
+
 # OpenAI API konfigurace
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
@@ -30,7 +32,7 @@ TRAITOR_RATIO = 0.25  # 25% hráčů jsou zrádci (minimálně 2)
 # DAY_VOTE_TIMEOUT = 300    # 5 minut pro denní hlasování
 # TRAITOR_CHAT_TIMEOUT = 180  # 3 minuty pro diskuzi zrádců
 
-# Herní fáze
+# Herní fáze, možné orientační časy začátku fází
 PHASE_INIT = "inicializace"
 PHASE_NIGHT_TRAITOR_CHAT = "nocni_diskuze_zradcu" # 22:00
 PHASE_NIGHT_VOTE = "nocni_hlasovani"  # 23:00
