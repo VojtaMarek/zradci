@@ -606,13 +606,14 @@ def watch(
         if state['phase'] in [config.PHASE_DAY_VOTE, config.PHASE_DAY_REVOTE]:
             total_alive = len(models.get_alive_players())
             voter_turnout = get_current_voter_turnout_count(state, total_alive)
-            votes_text = get_current_votes_text(state, blind=True) 
+            # votes_text = get_current_votes_text(state, blind=True) 
             
             vote_title = "🗳️  Aktuální hlasy:"
             if state['phase'] == config.PHASE_DAY_REVOTE:
                 vote_title = "🔄 Opakované denní hlasování:"
             vote_title += f" [cyan]{voter_turnout}[/cyan]" if voter_turnout != "0 (0%)" else ""
-            stats_text += f"[bold]{vote_title}[/bold]\n{votes_text}\n"
+            # stats_text += f"[bold]{vote_title}[/bold]\n{votes_text}\n"
+            
             # nehlasovali ještě
             alive_players = models.get_alive_players()
             voted_player_ids = {v['voter_id'] for v in models.get_votes(state['round_number'], state['phase'])}
