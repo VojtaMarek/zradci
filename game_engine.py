@@ -136,7 +136,7 @@ def next_phase():
 
 def add_event(round_number: int, phase: str, event_type: str, description: str, moderator: bool = True):
     """Aktualizace události, včetně moderačního komentáře"""
-    narrator_commentary = narrator.generate_narrator_commentary() if moderator else ""
+    narrator_commentary = narrator.generate_narrator_commentary()  # if moderator else ""
     models.add_event(round_number, phase, event_type, description, narrator_commentary)
 
 
