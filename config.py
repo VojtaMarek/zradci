@@ -17,7 +17,7 @@ UPDATE_INTERVAL = float(os.getenv("UPDATE_INTERVAL", 2.0))
 
 # OpenAI API konfigurace
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
-OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4.1-mini")
 
 # Databáze
 DATABASE_PATH = "storage.db"
